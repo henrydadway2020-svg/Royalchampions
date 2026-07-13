@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro · Royal Rumble Pokémon Champions</title>
+<style>
+  :root{
+    --ring-red:#c81d25; --ring-red-dark:#8f1319; --ring-gold:#e8b23d; --ring-gold-soft:#f6d78a;
+    --ink:#1b1b22; --slate:#3a3a46; --paper:#f2ede3; --paper-card:#fffdf8; --line:#d8cfbb;
+    --ok:#2f7d4f; --danger:#b3261e;
+    --shadow:0 2px 0 rgba(27,27,34,0.08), 0 10px 24px -12px rgba(27,27,34,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; color:var(--ink);
+    font-family:"Iowan Old Style","Georgia","Times New Roman",serif;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(200,29,37,0.08), transparent 60%),
+      radial-gradient(1000px 500px at 100% 0%, rgba(232,178,61,0.14), transparent 55%),
+      var(--paper);
+  }
+  h1,h2,.display{font-family:"Futura","Trebuchet MS","Arial Narrow",sans-serif; letter-spacing:.02em; text-transform:uppercase; font-weight:700;}
+  header.top{background:linear-gradient(180deg, var(--ring-red) 0%, var(--ring-red-dark) 100%); color:#fff; border-bottom:3px solid var(--ink); box-shadow:var(--shadow);}
+  .top-inner{max-width:520px; margin:0 auto; padding:22px 20px; display:flex; align-items:center; gap:14px;}
+  .ball{width:34px;height:34px;border-radius:50%; background:linear-gradient(180deg,#fff 0 50%, var(--ink) 50% 100%); border:3px solid var(--ink); position:relative; flex:0 0 auto;}
+  .ball::after{content:"";position:absolute; inset:0; margin:auto; width:10px;height:10px;border-radius:50%; background:#fff; border:3px solid var(--ink); top:50%; transform:translateY(-50%);}
+  header h1{margin:0; font-size:1.2rem; color:#fff; line-height:1.15;}
+  header .sub{color:var(--ring-gold-soft); font-size:0.72rem; letter-spacing:.14em; margin-top:2px;}
+
+  main{max-width:520px; margin:0 auto; padding:26px 20px 60px;}
+  .card{background:var(--paper-card); border:2px solid var(--ink); border-radius:14px; box-shadow:var(--shadow); padding:22px; margin-bottom:18px;}
+  .card p.hint{color:var(--slate); font-size:0.9rem; margin:0 0 16px; font-family:inherit;}
+  label{display:block; font-size:0.72rem; text-transform:uppercase; letter-spacing:.08em; color:var(--slate); margin-bottom:4px;}
+  input[type=text],input[type=tel]{width:100%; padding:12px; border:2px solid var(--line); border-radius:8px; font-family:inherit; font-size:1rem; background:#fff; color:var(--ink);}
+  input:focus{outline:3px solid var(--ring-gold); border-color:var(--ring-red);}
+  .field{margin-bottom:14px;}
+  .hp{position:absolute; left:-9999px; top:-9999px;}
+  button.btn{
+    width:100%; appearance:none; cursor:pointer; font-family:inherit; text-transform:uppercase; font-weight:700;
+    letter-spacing:.05em; font-size:0.95rem; border:2px solid var(--ink); border-radius:10px; padding:14px 16px;
+    background:var(--ring-red); color:#fff; box-shadow:0 2px 0 var(--ink);
+  }
+  button.btn:active{transform:translateY(2px); box-shadow:none;}
+  button.btn:disabled{opacity:.5; cursor:not-allowed;}
+  .status{margin-top:12px; font-size:0.9rem; text-align:center;}
+  .status.error{color:var(--danger); font-weight:700;}
+  .status.ok{color:var(--ok); font-weight:700;}
+  .counter{display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;}
+  .counter .badge{padding:3px 10px; border-radius:20px; border:1.5px solid var(--ink); font-size:0.7rem; text-transform:uppercase; letter-spacing:.06em; background:var(--ring-gold-soft); font-weight:700;}
+  .bar{height:10px; border:2px solid var(--ink); border-radius:6px; background:#fff; overflow:hidden; margin-bottom:16px;}
+  .bar > div{height:100%; background:var(--ring-red); width:0%;}
+  .locked-box{text-align:center; padding:10px 0; color:var(--ring-red-dark); font-weight:700;}
+  .success-box{text-align:center; padding:6px 0;}
+  .success-box .big{font-size:2.2rem;}
+  footer{max-width:520px; margin:0 auto; padding:0 20px 40px; color:var(--slate); font-size:0.78rem; text-align:center;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="ball"></div>
+    <div>
+      <h1>Royal Rumble</h1>
+      <div class="sub">Pokémon Champions · Regístrate</div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="card">
+    <div class="counter">
+      <span style="font-size:0.85rem; color:var(--slate);">Cupo del torneo</span>
+      <span class="badge" id="badge-count">— / 64</span>
+    </div>
+    <div class="bar"><div id="bar-fill"></div></div>
+
+    <div id="form-area">
+      <p class="hint">Formato doubles, eliminación directa. Solo necesitamos tu nick del juego y tu WhatsApp para contactarte.</p>
+      <form id="reg-form" autocomplete="off">
+        <div class="field">
+          <label for="nick">Nick del juego</label>
+          <input type="text" id="nick" name="nick" maxlength="30" placeholder="Ej. RedFuria99" required>
+        </div>
+        <div class="field">
+          <label for="whatsapp">Número de WhatsApp</label>
+          <input type="tel" id="whatsapp" name="whatsapp" maxlength="30" placeholder="Ej. +52 55 1234 5678" required>
+        </div>
+        <!-- honeypot anti-spam, oculto para humanos -->
+        <div class="field hp" aria-hidden="true">
+          <label for="website">No llenar</label>
+          <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+        <button type="submit" class="btn" id="submit-btn">Confirmar mi registro</button>
+      </form>
+      <div class="status" id="status-msg"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Tu registro se guarda directamente en el servidor del torneo. Guarda una captura como comprobante si lo necesitas.
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  var elBadge = document.getElementById("badge-count");
+  var elBar = document.getElementById("bar-fill");
+  var elFormArea = document.getElementById("form-area");
+  var elForm = document.getElementById("reg-form");
+  var elStatus = document.getElementById("status-msg");
+  var elSubmit = document.getElementById("submit-btn");
+
+  function renderCount(total, locked){
+    elBadge.textContent = total + " / 64";
+    elBar.style.width = Math.min(100, (total/64)*100) + "%";
+    if(locked || total >= 64){
+      elFormArea.innerHTML =
+        '<div class="locked-box">' +
+          (total >= 64 ? "Cupo lleno. El registro está cerrado." : "El registro está cerrado. El bracket ya fue generado.") +
+        '</div>';
+    }
+  }
+
+  function loadStatus(){
+    fetch("/api/players")
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if(data.error){ elStatus.textContent = data.error; elStatus.className = "status error"; return; }
+        renderCount(data.total, data.locked);
+      })
+      .catch(function(){
+        elStatus.textContent = "No se pudo conectar con el servidor. Intenta más tarde.";
+        elStatus.className = "status error";
+      });
+  }
+
+  elForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    elStatus.textContent = "";
+    elStatus.className = "status";
+    elSubmit.disabled = true;
+    elSubmit.textContent = "Enviando...";
+
+    var payload = {
+      nick: document.getElementById("nick").value,
+      whatsapp: document.getElementById("whatsapp").value,
+      website: document.getElementById("website").value
+    };
+
+    fetch("/api/register", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload)
+    })
+      .then(function(r){ return r.json().then(function(data){ return { ok: r.ok, data: data }; }); })
+      .then(function(res){
+        if(!res.ok){
+          elStatus.textContent = res.data.error || "No se pudo registrar.";
+          elStatus.className = "status error";
+          elSubmit.disabled = false;
+          elSubmit.textContent = "Confirmar mi registro";
+          return;
+        }
+        elFormArea.innerHTML =
+          '<div class="success-box">' +
+            '<div class="big">✅</div>' +
+            '<h2 style="margin:6px 0 4px; color:var(--ring-red-dark); font-size:1.1rem;">¡Registrado!</h2>' +
+            '<p style="color:var(--slate); margin:0;">Nick: <b>' + escapeHtml(payload.nick.trim()) + '</b><br>Guarda tu WhatsApp activo, ahí se avisarán los combates.</p>' +
+          '</div>';
+        renderCount(res.data.total, false);
+      })
+      .catch(function(){
+        elStatus.textContent = "No se pudo conectar con el servidor. Intenta de nuevo.";
+        elStatus.className = "status error";
+        elSubmit.disabled = false;
+        elSubmit.textContent = "Confirmar mi registro";
+      });
+  });
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  loadStatus();
+})();
+</script>
+
+</body>
+</html>

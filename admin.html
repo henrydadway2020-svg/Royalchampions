@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin · Royal Rumble Pokémon Champions</title>
+<style>
+  :root{
+    --ring-red:#c81d25; --ring-red-dark:#8f1319; --ring-gold:#e8b23d; --ring-gold-soft:#f6d78a;
+    --ink:#1b1b22; --slate:#3a3a46; --paper:#f2ede3; --paper-card:#fffdf8; --line:#d8cfbb;
+    --ok:#2f7d4f; --danger:#b3261e;
+    --shadow:0 2px 0 rgba(27,27,34,0.08), 0 10px 24px -12px rgba(27,27,34,0.35);
+    --radius:14px; font-size:16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(200,29,37,0.08), transparent 60%),
+      radial-gradient(1000px 500px at 100% 0%, rgba(232,178,61,0.14), transparent 55%),
+      var(--paper);
+    color:var(--ink); font-family:"Iowan Old Style","Georgia","Times New Roman",serif; min-height:100vh;
+  }
+  h1,h2,h3,.display{font-family:"Futura","Trebuchet MS","Arial Narrow",sans-serif; letter-spacing:.02em; text-transform:uppercase; font-weight:700;}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px 80px;}
+
+  header.top{position:sticky; top:0; z-index:40; background:linear-gradient(180deg, var(--ring-red) 0%, var(--ring-red-dark) 100%); color:#fff; box-shadow:var(--shadow); border-bottom:3px solid var(--ink);}
+  .top-inner{max-width:1080px;margin:0 auto;padding:16px 20px 0; display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+  .ball{width:34px;height:34px;border-radius:50%; background:linear-gradient(180deg,#fff 0 50%, var(--ink) 50% 100%); border:3px solid var(--ink); position:relative; flex:0 0 auto;}
+  .ball::after{content:"";position:absolute; inset:0; margin:auto; width:10px;height:10px;border-radius:50%; background:#fff; border:3px solid var(--ink); top:50%; transform:translateY(-50%);}
+  header.top h1{margin:0; font-size:1.3rem; color:#fff; line-height:1.1;}
+  header.top .sub{color:var(--ring-gold-soft); font-size:0.72rem; letter-spacing:.14em; margin-top:-2px;}
+  nav.tabs{display:flex; gap:4px; margin-top:14px; overflow-x:auto;}
+  nav.tabs button{appearance:none; border:none; cursor:pointer; background:rgba(255,255,255,0.08); color:#fff2d9; padding:10px 16px; border-radius:10px 10px 0 0; font-family:inherit; font-weight:700; text-transform:uppercase; font-size:0.78rem; letter-spacing:.08em; border:2px solid transparent; border-bottom:none; white-space:nowrap;}
+  nav.tabs button.active{background:var(--paper); color:var(--ring-red-dark); border-color:var(--ink);}
+
+  main{padding-top:26px;}
+  .card{background:var(--paper-card); border:2px solid var(--ink); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px 22px; margin-bottom:20px;}
+  .card h2{margin:0 0 4px; font-size:1.05rem; color:var(--ring-red-dark);}
+  .card .hint{color:var(--slate); font-size:0.85rem; margin:0 0 16px; font-family:inherit; text-transform:none; letter-spacing:normal;}
+
+  label{display:block; font-size:0.72rem; text-transform:uppercase; letter-spacing:.08em; color:var(--slate); margin-bottom:4px; font-family:inherit;}
+  input[type=text],input[type=tel],input[type=password],textarea,select{width:100%; padding:10px 12px; border:2px solid var(--line); border-radius:8px; font-family:inherit; font-size:0.95rem; background:#fff; color:var(--ink);}
+  input:focus,textarea:focus,select:focus{outline:3px solid var(--ring-gold); border-color:var(--ring-red);}
+  textarea{min-height:110px; resize:vertical;}
+  .row{display:flex; gap:12px; flex-wrap:wrap;}
+  .row > div{flex:1; min-width:180px;}
+
+  button.btn{appearance:none; cursor:pointer; font-family:inherit; text-transform:uppercase; font-weight:700; letter-spacing:.05em; font-size:0.8rem; border:2px solid var(--ink); border-radius:9px; padding:10px 16px; background:var(--ring-gold); color:var(--ink); box-shadow:0 2px 0 var(--ink);}
+  button.btn:active{transform:translateY(2px); box-shadow:none;}
+  button.btn.primary{background:var(--ring-red); color:#fff;}
+  button.btn.ghost{background:#fff; color:var(--ink);}
+  button.btn.danger{background:var(--danger); color:#fff;}
+  button.btn.small{padding:6px 10px; font-size:0.7rem; border-radius:7px;}
+  button.btn:disabled{opacity:.4; cursor:not-allowed;}
+
+  table.players{width:100%; border-collapse:collapse; font-size:0.92rem;}
+  table.players th{text-align:left; text-transform:uppercase; font-size:0.68rem; letter-spacing:.07em; color:var(--slate); border-bottom:2px solid var(--ink); padding:6px 8px; font-family:inherit;}
+  table.players td{padding:8px; border-bottom:1px solid var(--line);}
+  table.players tr:nth-child(even){background:rgba(232,178,61,0.08);}
+
+  .badge{display:inline-block; padding:2px 9px; border-radius:20px; font-size:0.68rem; text-transform:uppercase; letter-spacing:.06em; font-weight:700; border:1.5px solid var(--ink);}
+  .badge.count{background:var(--ring-gold-soft);}
+  .badge.ok{background:#cdeedb; color:var(--ok); border-color:var(--ok);}
+  .badge.warn{background:#fde6c8; color:#8a5a12; border-color:#8a5a12;}
+  .badge.locked{background:#f5c9c6; color:var(--danger); border-color:var(--danger);}
+
+  .round{margin-bottom:26px;}
+  .round-head{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px;}
+  .round-head h3{margin:0; font-size:1rem; color:var(--ring-red-dark);}
+  .matches{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:12px;}
+  .match{border:2px solid var(--ink); border-radius:10px; background:#fff; padding:10px 12px; position:relative;}
+  .match .mnum{position:absolute; top:-10px; left:10px; background:var(--ink); color:#fff; font-size:0.62rem; padding:2px 7px; border-radius:20px; letter-spacing:.06em; text-transform:uppercase; font-family:inherit;}
+  .fighter{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 10px; border-radius:7px; border:2px solid var(--line); margin-top:8px; cursor:pointer; font-size:0.92rem; background:#fbf9f3;}
+  .fighter:hover{border-color:var(--ring-gold);}
+  .fighter.winner{background:#cdeedb; border-color:var(--ok); font-weight:700;}
+  .fighter.disabled{cursor:default;}
+  .fighter .name{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .fighter .pick{font-size:0.65rem; text-transform:uppercase; color:var(--slate); flex:0 0 auto;}
+  .vs{text-align:center; font-size:0.66rem; letter-spacing:.1em; color:var(--slate); margin:4px 0; text-transform:uppercase;}
+  .match-footer{display:flex; align-items:center; justify-content:space-between; margin-top:10px; gap:8px;}
+  select.format{width:auto; padding:4px 8px; font-size:0.72rem;}
+
+  .champion{text-align:center; padding:34px 20px; border:3px solid var(--ring-gold); border-radius:16px; background:linear-gradient(180deg, #fff7e2, #fce9bd); box-shadow:var(--shadow);}
+  .champion .trophy{font-size:2.6rem;}
+  .champion h2{color:var(--ring-red-dark); font-size:1.6rem; margin:6px 0 2px;}
+  .champion .sub{font-family:inherit; text-transform:none; color:var(--slate);}
+
+  .datos-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:640px){.datos-grid{grid-template-columns:1fr;}}
+
+  .save-strip{font-size:0.75rem; color:var(--slate); display:flex; align-items:center; gap:8px; margin-top:10px;}
+  .save-strip .dot{width:8px;height:8px;border-radius:50%; background:var(--ok);}
+
+  footer{max-width:1080px; margin:0 auto; padding:10px 20px 40px; color:var(--slate); font-size:0.78rem; line-height:1.5;}
+  .empty{color:var(--slate); font-style:italic; font-size:0.9rem;}
+  .msg{font-size:0.85rem; margin-top:8px;}
+  .msg.error{color:var(--danger); font-weight:700;}
+  .msg.ok{color:var(--ok); font-weight:700;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="ball"></div>
+    <div>
+      <h1>Royal Rumble · Admin</h1>
+      <div class="sub">Pokémon Champions · Torneo Doubles</div>
+    </div>
+  </div>
+  <div class="top-inner" style="padding-top:0;">
+    <nav class="tabs" id="tabs">
+      <button data-tab="registro" class="active">Registro</button>
+      <button data-tab="bracket">Bracket</button>
+      <button data-tab="datos">Datos / Servidor</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- REGISTRO -->
+  <section id="tab-registro">
+    <div class="card">
+      <h2>
+        Registros del servidor
+        <span class="badge count" id="server-count-badge">— / 64</span>
+        <span class="badge" id="server-lock-badge" style="display:none;"></span>
+      </h2>
+      <p class="hint">Los jugadores se registran solos en la página pública (<code>index.html</code>). Aquí solo sincronizas y administras.</p>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn primary" id="btn-sync">Sincronizar registros desde el servidor</button>
+        <button class="btn ghost" id="btn-toggle-lock">Cerrar registro</button>
+      </div>
+      <div class="msg" id="sync-msg"></div>
+    </div>
+
+    <div class="card">
+      <h2>Alta manual / respaldo</h2>
+      <p class="hint">Por si necesitas agregar a alguien a mano (no reemplaza la sincronización).</p>
+      <div class="row">
+        <div>
+          <label for="in-nick">Nick del juego</label>
+          <input type="text" id="in-nick" placeholder="Ej. RedFuria99" maxlength="30">
+        </div>
+        <div>
+          <label for="in-wa">Número de WhatsApp</label>
+          <input type="tel" id="in-wa" placeholder="Ej. +52 55 1234 5678">
+        </div>
+      </div>
+      <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn ghost" id="btn-add-player">Agregar jugador localmente</button>
+        <span id="add-error" style="color:var(--danger); font-size:0.85rem; align-self:center;"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>
+        Jugadores en este panel
+        <span class="badge count" id="player-count-badge">0 / 64</span>
+      </h2>
+      <p class="hint">Esta lista es la que se usa para generar el bracket. Sincroniza antes de generar para traer a todos.</p>
+      <div id="players-table-wrap"></div>
+    </div>
+  </section>
+
+  <!-- BRACKET -->
+  <section id="tab-bracket" style="display:none;">
+    <div class="card" id="bracket-controls"></div>
+    <div id="bracket-rounds"></div>
+  </section>
+
+  <!-- DATOS -->
+  <section id="tab-datos" style="display:none;">
+    <div class="card">
+      <h2>Token de administrador</h2>
+      <p class="hint">
+        Es la contraseña que configuraste como variable de entorno <code>RUMBLE_ADMIN_TOKEN</code> en Cloudflare Pages.
+        Se necesita para cerrar/abrir el registro y para borrar los registros del servidor. Se guarda solo en este navegador.
+      </p>
+      <div class="row">
+        <div>
+          <label for="admin-token">Token</label>
+          <input type="password" id="admin-token" placeholder="Tu token de administrador">
+        </div>
+      </div>
+      <div style="margin-top:10px;">
+        <button class="btn ghost" id="btn-save-token">Guardar token</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Respaldo en JSON (bracket y jugadores de este panel)</h2>
+      <p class="hint">
+        El bracket vive solo en este navegador. Descarga el JSON después de cada ronda para no perder nada
+        y, si quieres, súbelo a tu repositorio de GitHub como respaldo histórico.
+      </p>
+      <div class="datos-grid">
+        <div>
+          <h3 style="margin:0 0 8px; font-size:0.85rem;">Exportar</h3>
+          <button class="btn primary" id="btn-export">Descargar JSON del torneo</button>
+        </div>
+        <div>
+          <h3 style="margin:0 0 8px; font-size:0.85rem;">Importar</h3>
+          <input type="file" id="file-import" accept="application/json">
+        </div>
+      </div>
+      <div class="save-strip"><span class="dot"></span> <span id="save-status">Guardado localmente en este navegador.</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Zona de riesgo</h2>
+      <p class="hint">Borra el bracket y jugadores de este navegador (no afecta el servidor).</p>
+      <button class="btn danger" id="btn-reset-local">Borrar todo en este navegador</button>
+      <hr style="margin:16px 0; border:none; border-top:1px solid var(--line);">
+      <p class="hint">Borra TODOS los registros guardados en el servidor de Cloudflare (requiere token). Úsalo para empezar un torneo nuevo.</p>
+      <button class="btn danger" id="btn-reset-server">Borrar registros del servidor</button>
+      <div class="msg" id="reset-server-msg"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  El bracket se administra solo desde este panel (admin.html) y vive en tu navegador; los registros de jugadores viven en el servidor de Cloudflare.
+  No compartas el enlace a este panel con los jugadores.
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "prc_rumble_admin_v1";
+  var TOKEN_KEY = "prc_rumble_admin_token";
+  var MAX_PLAYERS = 64;
+
+  // ---------- state ----------
+  function defaultState(){ return { players: [], bracket: null, updatedAt: null }; }
+  function loadState(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return defaultState();
+      var parsed = JSON.parse(raw);
+      if(!parsed || typeof parsed !== "object") return defaultState();
+      if(!Array.isArray(parsed.players)) parsed.players = [];
+      if(parsed.bracket === undefined) parsed.bracket = null;
+      return parsed;
+    }catch(e){ return defaultState(); }
+  }
+  var state = loadState();
+
+  function save(){
+    state.updatedAt = Date.now();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    var el = document.getElementById("save-status");
+    if(el){
+      var d = new Date(state.updatedAt);
+      el.textContent = "Guardado localmente · " + d.toLocaleTimeString();
+    }
+  }
+
+  function getToken(){ return localStorage.getItem(TOKEN_KEY) || ""; }
+
+  document.getElementById("admin-token").value = getToken();
+  document.getElementById("btn-save-token").addEventListener("click", function(){
+    localStorage.setItem(TOKEN_KEY, document.getElementById("admin-token").value.trim());
+    alert("Token guardado en este navegador.");
+  });
+
+  function uid(){ return Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4); }
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i=a.length-1;i>0;i--){ var j = Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+    return a;
+  }
+  function playerById(id){ for(var i=0;i<state.players.length;i++) if(state.players[i].id===id) return state.players[i]; return null; }
+  function playerName(id){ var p = playerById(id); return p ? p.nick : "(desconocido)"; }
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+  // ---------- tabs ----------
+  var tabs = document.getElementById("tabs");
+  tabs.addEventListener("click", function(e){
+    var btn = e.target.closest("button[data-tab]");
+    if(!btn) return;
+    Array.prototype.forEach.call(tabs.querySelectorAll("button"), function(b){ b.classList.remove("active"); });
+    btn.classList.add("active");
+    ["registro","bracket","datos"].forEach(function(name){
+      document.getElementById("tab-"+name).style.display = (name===btn.dataset.tab) ? "" : "none";
+    });
+    renderAll();
+  });
+
+  // ---------- server sync ----------
+  var serverLocked = false;
+
+  function refreshServerStatus(){
+    fetch("/api/players").then(function(r){ return r.json(); }).then(function(data){
+      if(data.error) return;
+      document.getElementById("server-count-badge").textContent = data.total + " / 64";
+      var lockBadge = document.getElementById("server-lock-badge");
+      serverLocked = !!data.locked;
+      if(serverLocked){
+        lockBadge.style.display = "";
+        lockBadge.textContent = "Registro cerrado";
+        lockBadge.className = "badge locked";
+        document.getElementById("btn-toggle-lock").textContent = "Abrir registro";
+      } else {
+        lockBadge.style.display = "";
+        lockBadge.textContent = "Registro abierto";
+        lockBadge.className = "badge ok";
+        document.getElementById("btn-toggle-lock").textContent = "Cerrar registro";
+      }
+    }).catch(function(){ /* ignore, admin may be offline/testing locally */ });
+  }
+
+  document.getElementById("btn-sync").addEventListener("click", function(){
+    var msg = document.getElementById("sync-msg");
+    msg.textContent = "Sincronizando...";
+    msg.className = "msg";
+    fetch("/api/players").then(function(r){ return r.json(); }).then(function(data){
+      if(data.error){ msg.textContent = data.error; msg.className = "msg error"; return; }
+      if(state.bracket){
+        if(!confirm("Ya generaste un bracket con la lista actual. Sincronizar reemplazará la lista de jugadores locales. ¿Continuar?")) return;
+      }
+      state.players = data.players.map(function(p){
+        return { id: p.id, nick: p.nick, whatsapp: p.whatsapp, createdAt: p.createdAt };
+      });
+      save(); renderAll(); refreshServerStatus();
+      msg.textContent = "Sincronizado: " + state.players.length + " jugador(es) traídos del servidor.";
+      msg.className = "msg ok";
+    }).catch(function(){
+      msg.textContent = "No se pudo conectar con el servidor.";
+      msg.className = "msg error";
+    });
+  });
+
+  document.getElementById("btn-toggle-lock").addEventListener("click", function(){
+    var token = getToken();
+    if(!token){ alert("Primero guarda tu token de administrador en la pestaña 'Datos / Servidor'."); return; }
+    var newLocked = !serverLocked;
+    fetch("/api/lock", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-admin-token": token },
+      body: JSON.stringify({ locked: newLocked })
+    }).then(function(r){ return r.json().then(function(d){ return {ok:r.ok, d:d}; }); })
+      .then(function(res){
+        if(!res.ok){ alert(res.d.error || "No se pudo cambiar el estado del registro."); return; }
+        refreshServerStatus();
+      }).catch(function(){ alert("No se pudo conectar con el servidor."); });
+  });
+
+  document.getElementById("btn-reset-server").addEventListener("click", function(){
+    var token = getToken();
+    if(!token){ alert("Primero guarda tu token de administrador."); return; }
+    if(!confirm("Esto borrará TODOS los registros guardados en el servidor. ¿Seguro?")) return;
+    var msg = document.getElementById("reset-server-msg");
+    fetch("/api/reset", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-admin-token": token }
+    }).then(function(r){ return r.json().then(function(d){ return {ok:r.ok, d:d}; }); })
+      .then(function(res){
+        if(!res.ok){ msg.textContent = res.d.error || "No se pudo borrar."; msg.className="msg error"; return; }
+        msg.textContent = "Se borraron " + res.d.deleted + " registro(s) del servidor.";
+        msg.className = "msg ok";
+        refreshServerStatus();
+      }).catch(function(){ msg.textContent = "No se pudo conectar con el servidor."; msg.className="msg error"; });
+  });
+
+  // ---------- manual registration (local backup) ----------
+  function normalizedNick(s){ return s.trim().toLowerCase(); }
+  function addPlayer(nick, whatsapp){
+    var errEl = document.getElementById("add-error");
+    errEl.textContent = "";
+    nick = (nick||"").trim(); whatsapp = (whatsapp||"").trim();
+    if(!nick || !whatsapp){ errEl.textContent = "Completa nick y WhatsApp."; return false; }
+    if(state.players.length >= MAX_PLAYERS){ errEl.textContent = "Ya hay 64 jugadores en la lista."; return false; }
+    var dup = state.players.some(function(p){ return normalizedNick(p.nick)===normalizedNick(nick); });
+    if(dup){ errEl.textContent = "Ese nick ya está en la lista."; return false; }
+    state.players.push({ id: uid(), nick: nick, whatsapp: whatsapp, createdAt: Date.now() });
+    save();
+    return true;
+  }
+  document.getElementById("btn-add-player").addEventListener("click", function(){
+    var nick = document.getElementById("in-nick").value;
+    var wa = document.getElementById("in-wa").value;
+    if(addPlayer(nick, wa)){
+      document.getElementById("in-nick").value = "";
+      document.getElementById("in-wa").value = "";
+      renderAll();
+    }
+  });
+
+  function removePlayer(id){
+    if(state.bracket){ alert("Ya generaste el bracket. Reinicia el torneo local si necesitas quitar jugadores."); return; }
+    state.players = state.players.filter(function(p){ return p.id !== id; });
+    save(); renderAll();
+  }
+
+  function renderPlayers(){
+    var wrap = document.getElementById("players-table-wrap");
+    document.getElementById("player-count-badge").textContent = state.players.length + " / " + MAX_PLAYERS;
+    if(state.players.length === 0){ wrap.innerHTML = '<p class="empty">Aún no hay jugadores en este panel. Sincroniza o agrega manualmente.</p>'; return; }
+    var rows = state.players.map(function(p, idx){
+      return '<tr><td>'+(idx+1)+'</td><td>'+escapeHtml(p.nick)+'</td><td>'+escapeHtml(p.whatsapp)+'</td>' +
+        '<td>'+(state.bracket ? '' : '<button class="btn small danger" data-remove="'+p.id+'">Quitar</button>')+'</td></tr>';
+    }).join("");
+    wrap.innerHTML = '<table class="players"><thead><tr><th>#</th><th>Nick</th><th>WhatsApp</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-remove]"), function(btn){
+      btn.addEventListener("click", function(){ removePlayer(btn.dataset.remove); });
+    });
+  }
+
+  // ---------- bracket logic ----------
+  function largestPow2LE(n){ var p=1; while(p*2<=n) p*=2; return p; }
+  function roundNameForSize(n){
+    var names = {64:"Treintaidosavos de Final", 32:"Dieciseisavos de Final", 16:"Octavos de Final", 8:"Cuartos de Final", 4:"Semifinal", 2:"Final"};
+    return names[n] || ("Ronda de " + n);
+  }
+  function defaultFormatForSize(n){ return n <= 4 ? "bo3" : "bo1"; }
+  function createMatch(a,b,format){ return { id: uid(), a:a, b:b, format:format, winner:null }; }
+  function buildRoundFromPlayers(playerIds, size){
+    var shuffled = shuffle(playerIds);
+    var matches = [];
+    for(var i=0;i<shuffled.length;i+=2) matches.push(createMatch(shuffled[i], shuffled[i+1], defaultFormatForSize(size)));
+    return { id: uid(), name: roundNameForSize(size), size: size, matches: matches, advanced:false, isPrelim:false };
+  }
+
+  function generateBracket(){
+    if(state.players.length < 2){ alert("Necesitas al menos 2 jugadores en la lista."); return; }
+    if(state.bracket){ if(!confirm("Ya existe un bracket. ¿Regenerarlo desde cero? Se perderán los resultados actuales.")) return; }
+    var pool = shuffle(state.players.map(function(p){ return p.id; }));
+    var n = pool.length;
+    var largest = largestPow2LE(n);
+    var rounds = [];
+    if(largest !== n){
+      var extra = n - largest;
+      var inPrelim = pool.slice(0, extra*2);
+      var byes = pool.slice(extra*2);
+      var matches = [];
+      for(var i=0;i<inPrelim.length;i+=2) matches.push(createMatch(inPrelim[i], inPrelim[i+1], "bo1"));
+      rounds.push({ id: uid(), name: "Ronda Previa (para llegar a "+largest+")", size:n, matches:matches, advanced:false, isPrelim:true, byes:byes });
+    } else {
+      rounds.push(buildRoundFromPlayers(pool, largest));
+    }
+    state.bracket = { rounds: rounds };
+    save(); renderAll();
+  }
+
+  function allMatchesHaveWinner(round){ return round.matches.every(function(m){ return !!m.winner; }); }
+
+  function advanceRound(roundIndex){
+    var round = state.bracket.rounds[roundIndex];
+    if(!allMatchesHaveWinner(round)){ alert("Faltan ganadores por seleccionar en esta ronda."); return; }
+    state.bracket.rounds = state.bracket.rounds.slice(0, roundIndex+1);
+    round.advanced = true;
+    var winners = round.matches.map(function(m){ return m.winner; });
+    if(round.isPrelim && round.byes) winners = winners.concat(round.byes);
+    if(winners.length >= 2){
+      var nextSize = winners.length;
+      state.bracket.rounds.push(buildRoundFromPlayers(winners, nextSize));
+    }
+    save(); renderAll();
+  }
+
+  function reopenRound(roundIndex){
+    if(!confirm("Esto eliminará las rondas posteriores generadas a partir de aquí. ¿Continuar?")) return;
+    state.bracket.rounds = state.bracket.rounds.slice(0, roundIndex+1);
+    state.bracket.rounds[roundIndex].advanced = false;
+    save(); renderAll();
+  }
+
+  function setWinner(roundIndex, matchIndex, playerId){
+    var round = state.bracket.rounds[roundIndex];
+    if(round.advanced){ alert("Esta ronda ya avanzó. Usa 'Reabrir ronda' para corregir."); return; }
+    round.matches[matchIndex].winner = playerId;
+    save(); renderAll();
+  }
+
+  function setMatchFormat(roundIndex, matchIndex, format){
+    var round = state.bracket.rounds[roundIndex];
+    if(round.advanced) return;
+    round.matches[matchIndex].format = format;
+    save();
+  }
+
+  function renderBracketControls(){
+    var el = document.getElementById("bracket-controls");
+    if(!state.bracket){
+      el.innerHTML = '<h2>Generar bracket</h2>' +
+        '<p class="hint">Con '+state.players.length+' jugador(es) en la lista. Formato doubles, eliminación directa 64→32→16→8→4→2. ' +
+        'Si el número no es potencia de 2, primero se juega una ronda previa entre el exceso de jugadores.</p>' +
+        '<button class="btn primary" id="btn-generate" '+(state.players.length<2 ? "disabled" : "")+'>Cerrar registro local y generar bracket</button>';
+      document.getElementById("btn-generate").addEventListener("click", generateBracket);
+    } else {
+      el.innerHTML = '<h2>Bracket en curso</h2>' +
+        '<p class="hint">'+state.players.length+' jugadores. Selecciona el ganador de cada combate; puedes corregirlo mientras la ronda no haya avanzado.</p>' +
+        '<button class="btn ghost" id="btn-regenerate">Regenerar bracket desde cero</button>';
+      document.getElementById("btn-regenerate").addEventListener("click", generateBracket);
+    }
+  }
+
+  function renderRounds(){
+    var container = document.getElementById("bracket-rounds");
+    if(!state.bracket){ container.innerHTML = ""; return; }
+    var rounds = state.bracket.rounds;
+    var html = "";
+    rounds.forEach(function(round, rIdx){
+      var complete = allMatchesHaveWinner(round);
+      html += '<div class="round"><div class="round-head"><h3>'+escapeHtml(round.name)+'</h3><div style="display:flex; gap:8px; align-items:center;">';
+      if(round.advanced){
+        html += '<span class="badge ok">Avanzada</span><button class="btn small ghost" data-reopen="'+rIdx+'">Reabrir ronda</button>';
+      } else {
+        html += '<span class="badge '+(complete?'ok':'warn')+'">'+(complete?'Lista para avanzar':'Faltan ganadores')+'</span>' +
+          '<button class="btn small primary" data-advance="'+rIdx+'" '+(complete?'':'disabled')+'>Avanzar a siguiente ronda</button>';
+      }
+      html += '</div></div><div class="matches">';
+      round.matches.forEach(function(m, mIdx){
+        var nameA = playerName(m.a), nameB = playerName(m.b);
+        var lock = round.advanced;
+        html += '<div class="match"><span class="mnum">Combate '+(mIdx+1)+'</span>';
+        html += '<div class="fighter '+(m.winner===m.a?'winner':'')+' '+(lock?'disabled':'')+'" '+(lock?'':'data-pick="'+rIdx+'|'+mIdx+'|'+m.a+'"')+'>' +
+          '<span class="name">'+escapeHtml(nameA)+'</span><span class="pick">'+(m.winner===m.a ? "Ganador" : (lock?"":"Elegir"))+'</span></div>';
+        html += '<div class="vs">vs</div>';
+        html += '<div class="fighter '+(m.winner===m.b?'winner':'')+' '+(lock?'disabled':'')+'" '+(lock?'':'data-pick="'+rIdx+'|'+mIdx+'|'+m.b+'"')+'>' +
+          '<span class="name">'+escapeHtml(nameB)+'</span><span class="pick">'+(m.winner===m.b ? "Ganador" : (lock?"":"Elegir"))+'</span></div>';
+        html += '<div class="match-footer"><label style="margin:0;">Formato</label>' +
+          '<select class="format" data-format="'+rIdx+'|'+mIdx+'" '+(lock?'disabled':'')+'>' +
+          '<option value="bo1" '+(m.format==="bo1"?"selected":"")+'>Bo1</option>' +
+          '<option value="bo3" '+(m.format==="bo3"?"selected":"")+'>Bo3</option></select></div></div>';
+      });
+      html += '</div></div>';
+    });
+
+    var lastRound = rounds[rounds.length-1];
+    if(lastRound && lastRound.advanced && lastRound.matches.length===1 && !lastRound.isPrelim){
+      var championId = lastRound.matches[0].winner;
+      html += '<div class="champion"><div class="trophy">🏆</div><h2>Campeón del Royal Rumble</h2>' +
+        '<div class="sub">'+escapeHtml(playerName(championId))+'</div></div>';
+    }
+
+    container.innerHTML = html;
+    Array.prototype.forEach.call(container.querySelectorAll("[data-pick]"), function(el){
+      el.addEventListener("click", function(){
+        var parts = el.dataset.pick.split("|");
+        setWinner(parseInt(parts[0],10), parseInt(parts[1],10), parts[2]);
+      });
+    });
+    Array.prototype.forEach.call(container.querySelectorAll("[data-advance]"), function(btn){
+      btn.addEventListener("click", function(){ advanceRound(parseInt(btn.dataset.advance,10)); });
+    });
+    Array.prototype.forEach.call(container.querySelectorAll("[data-reopen]"), function(btn){
+      btn.addEventListener("click", function(){ reopenRound(parseInt(btn.dataset.reopen,10)); });
+    });
+    Array.prototype.forEach.call(container.querySelectorAll("[data-format]"), function(sel){
+      sel.addEventListener("change", function(){
+        var parts = sel.dataset.format.split("|");
+        setMatchFormat(parseInt(parts[0],10), parseInt(parts[1],10), sel.value);
+      });
+    });
+  }
+
+  // ---------- data tab: local export/import/reset ----------
+  document.getElementById("btn-export").addEventListener("click", function(){
+    var blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    var stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g,"-");
+    a.href = url; a.download = "torneo-pokemon-champions-" + stamp + ".json";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById("file-import").addEventListener("change", function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      try{
+        var parsed = JSON.parse(reader.result);
+        if(!parsed || !Array.isArray(parsed.players)) throw new Error("Formato inválido");
+        state = parsed; save(); renderAll();
+        alert("Torneo importado correctamente.");
+      }catch(err){ alert("No se pudo leer el archivo: " + err.message); }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  });
+
+  document.getElementById("btn-reset-local").addEventListener("click", function(){
+    if(!confirm("¿Borrar todo lo guardado en este navegador (jugadores locales y bracket)? Esto no borra el servidor.")) return;
+    state = defaultState(); save(); renderAll();
+  });
+
+  // ---------- render all ----------
+  function renderAll(){ renderPlayers(); renderBracketControls(); renderRounds(); }
+
+  renderAll();
+  refreshServerStatus();
+})();
+</script>
+
+</body>
+</html>
